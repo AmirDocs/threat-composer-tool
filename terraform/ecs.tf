@@ -29,6 +29,11 @@ resource "aws_iam_role_policy_attachment" "ecs-execution-role-policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy_attachment" "attach_s3_full_access" {
+  role       = aws_iam_role.ecs-execution-iam.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
 resource "aws_cloudwatch_log_group" "threatmodel-logs" {
   name              = "/ecs/threatmodel-logs"
   retention_in_days = 7
