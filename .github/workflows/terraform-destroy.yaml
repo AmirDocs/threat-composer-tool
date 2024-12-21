@@ -1,46 +1,63 @@
-name: Terraform Destroy
+# name: Terraform Destroy
+
+name: Destroy Terraform Infrastructure
 
 on:
   workflow_dispatch:
     inputs:
-      confirm:
-        description: "Type 'yes' to confirm destruction of infrastructure."
+      confirmation:
+        description: 'Type "yes" to confirm destruction'
         required: true
-        default: "no"
+        default: 'no'
+
+permissions:
+  contents: read
 
 jobs:
-  terraform:
+  terraform_static_analysis:
+    name: 'Terraform Static Analysis'
     runs-on: ubuntu-latest
-
+    if: github.event_name == 'workflow_dispatch'
     steps:
-      - name: Check if destruction is confirmed
-        if: ${{ github.event.inputs.confirm != 'yes' }}
-        run: |
-          echo "Destruction not confirmed. Exiting."
-          exit 1
-
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.9.7 
+  terraform_destroy:
+    name: 'Terraform Destroy'
+    runs-on: ubuntu-latest
+    needs: terraform_static_analysis
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirmation == 'yes'
+    steps:
+      - uses: actions/checkout@v2
 
-      - name: Terraform Init with S3 Backend
-        working-directory: Terraform
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # Debugging step to check if secrets are loaded correctly
+      - name: Check Secrets Loaded
         run: |
-          terraform init -backend-config="bucket=threat-app-bucket" \
-                         -backend-config="key=state" \
-                         -backend-config="region=eu-west-2" \
-                         -backend-config="encrypt=true"
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then echo "AWS_ACCESS_KEY_ID is not set"; else echo "AWS_ACCESS_KEY_ID is set"; fi
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then echo "AWS_SECRET_ACCESS_KEY is not set"; else echo "AWS_SECRET_ACCESS_KEY is set"; fi
 
+      # Configure AWS Credentials (use v4 for consistency)
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      # Terraform Destroy Step
       - name: Terraform Destroy
-        working-directory: Terraform
+        working-directory: ./terraform  # Adjust if necessary
+        run: |
+          pwd
+          ls -la  
+          terraform init  
+          terraform destroy --target=aws_route53_record.tm_cname_record --auto-approve
+          terraform destroy --auto-approve
+
+      # Test S3 Access
+      - name: Test S3 Access
+        run: |
+          aws s3 ls s3://your-bucket-name --region eu-west-2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: terraform destroy -auto-approve 
