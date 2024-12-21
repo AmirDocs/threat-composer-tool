@@ -69,11 +69,12 @@ jobs:
 
       - name: Terraform Init (Backend S3)
         working-directory: terraform
-        run: |
-          terraform init -backend-config="bucket=threat-app-bucket" \
-                         -backend-config="key=state" \
-                         -backend-config="region=eu-west-2" \
-                         -backend-config="encrypt=true"
+        run: terraform init
+        #     |
+        #   terraform init -backend-config="bucket=threat-app-bucket" \
+        #                  -backend-config="key=state" \
+        #                  -backend-config="region=eu-west-2" \
+        #                  -backend-config="encrypt=true"
 
       - name: Terraform Validate
         working-directory: terraform
