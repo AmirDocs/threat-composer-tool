@@ -18,6 +18,7 @@ jobs:
         run: |
           echo "Deployment not confirmed. Exiting."
           exit 1
+            
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -37,7 +38,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/threat_app_image:latest .
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/threat_app_image:latest 
 
       - name: Push Docker image to Amazon ECR
         run: |
