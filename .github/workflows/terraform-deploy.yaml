@@ -1,125 +1,183 @@
+# name: Terraform build and deploy
+
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       confirmation:
+#         description: 'Type "yes" to confirm deployment'
+#         required: true
+#         default: 'no'
+
+# permissions:
+#   contents: read
+#   pull-requests: write
+
+# env:
+#   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#   AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+
+# jobs:
+#   security_scan:
+#     name: 'Security Scan'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
+
+#       - name: Log in to Amazon ECR
+#         uses: aws-actions/amazon-ecr-login@v1
+#         env:
+#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           AWS_REGION: ${{ secrets.AWS_REGION }}
+
+#       - name: Pull Docker image from ECR
+#         run: |
+#           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/threat_app_image:latest
+#           docker pull $IMAGE_URI
+
+#       - name: Scan Docker image for vulnerabilities
+#         uses: aquasecurity/trivy-action@master
+#         with:
+#           image-ref: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/threat_app_image:latest
+#           severity: CRITICAL
+#           cache-dir: .trivycache
+#         env:
+#             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+#   terraform_static_analysis:
+#     name: 'Terraform Static Analysis'
+#     needs: security_scan
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
+
+#       - name: Install Terraform
+#         uses: hashicorp/setup-terraform@v2
+#         with:
+#           terraform_version: latest       # 1.9.7
+
+#       - name: Terraform Format
+#         working-directory: ./terraform
+#         run: terraform fmt --recursive
+
+#       - name: Terraform Format Check
+#         working-directory: ./terraform
+#         run: terraform fmt -check
+
+#       - name: Terraform Init (Backend S3)
+#         working-directory: ./terraform
+#         run: |
+#           terraform init -backend-config="bucket=threat-app-bucket" \
+#                          -backend-config="key=state" \
+#                          -backend-config="region=eu-west-2" \
+#                          -backend-config="encrypt=true"
+
+#       - name: Terraform Validate
+#         working-directory: ./terraform
+#         run: terraform validate
+
+#       - name: Install tflint
+#         run: |
+#           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+#           tflint --version
+
+#       - name: Terraform Lint
+#         working-directory: ./terraform
+#         run: tflint
+
+#   terraform_plan:
+#     name: 'Terraform Plan'
+#     needs: terraform_static_analysis
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
+
+#       - name: Terraform Plan
+#         working-directory: ./terraform
+#         id: tf-plan
+#         run: |
+#           terraform init -backend-config="bucket=threat-app-bucket" \
+#                          -backend-config="key=state" \
+#                          -backend-config="region=eu-west-2" \
+#                          -backend-config="encrypt=true"
+#           terraform plan
+
+#   terraform_apply:
+#     name: 'Terraform Apply'
+#     needs: terraform_plan
+#     runs-on: ubuntu-latest
+#     if: github.event.inputs.confirmation == 'yes'
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
+
+#       - name: Terraform Apply
+#         working-directory: ./terraform
+#         run: |
+#           terraform init -backend-config="bucket=threat-app-bucket" \
+#                          -backend-config="key=state" \
+#                          -backend-config="region=eu-west-2" \
+#                          -backend-config="encrypt=true"
+#           terraform apply -auto-approve
+
 name: Terraform build and deploy
 
 on:
-  workflow_dispatch:
-    inputs:
-      confirmation:
-        description: 'Type "yes" to confirm deployment'
-        required: true
-        default: 'no'
-
-permissions:
-  contents: read
-  pull-requests: write
-
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+    workflow_dispatch:
+      inputs:
+        confirmation:
+          description: 'Type "yes" to confirm deployment'
+          required: true
+          default: 'no'
 
 jobs:
-  security_scan:
-    name: 'Security Scan'
+  terraform:
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Log in to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-
-      - name: Pull Docker image from ECR
-        run: |
-          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/threat_app_image:latest
-          docker pull $IMAGE_URI
-
-      - name: Scan Docker image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+      # Step 2: Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
         with:
-          image-ref: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/threat_app_image:latest
-          severity: CRITICAL
-          cache-dir: .trivycache
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          terraform_version: 1.5.0  # Adjust the version if needed
 
-  terraform_static_analysis:
-    name: 'Terraform Static Analysis'
-    needs: security_scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
+      # Step 3: Configure AWS credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          terraform_version: latest       # 1.9.7
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
 
-      - name: Terraform Format
-        working-directory: ./terraform
-        run: terraform fmt --recursive
+      # Step 4: Format Terraform files
+      - name: Run terraform fmt -recursive to ensure formatting is correct
+        working-directory: ./terraform 
+        run: terraform fmt -recursive
 
-      - name: Terraform Format Check
-        working-directory: ./terraform
-        run: terraform fmt -check
+      # Step 7: Initialise Terraform
+      - name: Terraform Init
+        working-directory: ./terraform  
+        run: terraform init
 
-      - name: Terraform Init (Backend S3)
-        working-directory: ./terraform
-        run: |
-          terraform init -backend-config="bucket=threat-app-bucket" \
-                         -backend-config="key=state" \
-                         -backend-config="region=eu-west-2" \
-                         -backend-config="encrypt=true"
-
+      # Step 8: Validate Terraform
       - name: Terraform Validate
         working-directory: ./terraform
         run: terraform validate
 
-      - name: Install tflint
-        run: |
-          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          tflint --version
-
-      - name: Terraform Lint
-        working-directory: ./terraform
-        run: tflint
-
-  terraform_plan:
-    name: 'Terraform Plan'
-    needs: terraform_static_analysis
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
+      # Step 9: Terraform Plan
       - name: Terraform Plan
         working-directory: ./terraform
-        id: tf-plan
-        run: |
-          terraform init -backend-config="bucket=threat-app-bucket" \
-                         -backend-config="key=state" \
-                         -backend-config="region=eu-west-2" \
-                         -backend-config="encrypt=true"
-          terraform plan
+        run: terraform plan
 
-  terraform_apply:
-    name: 'Terraform Apply'
-    needs: terraform_plan
-    runs-on: ubuntu-latest
-    if: github.event.inputs.confirmation == 'yes'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
+      # Step 10: Apply the Terraform plan
       - name: Terraform Apply
         working-directory: ./terraform
-        run: |
-          terraform init -backend-config="bucket=threat-app-bucket" \
-                         -backend-config="key=state" \
-                         -backend-config="region=eu-west-2" \
-                         -backend-config="encrypt=true"
-          terraform apply -auto-approve
+        run: terraform apply -auto-approve
