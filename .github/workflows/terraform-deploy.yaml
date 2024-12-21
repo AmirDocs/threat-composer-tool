@@ -57,7 +57,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.9.7  
+          terraform_version: 1.10.3        # 1.9.7
 
       - name: Terraform Format
         working-directory: terraform
@@ -100,7 +100,7 @@ jobs:
         working-directory: terraform
         id: tf-plan
         run: |
-          terraform init -backend-config="bucket=threat-model-bucket" \
+          terraform init -backend-config="bucket=threat-app-bucket" \
                          -backend-config="key=state" \
                          -backend-config="region=eu-west-2" \
                          -backend-config="encrypt=true"
@@ -118,7 +118,7 @@ jobs:
       - name: Terraform Apply
         working-directory: terraform
         run: |
-          terraform init -backend-config="bucket=threat-model-bucket" \
+          terraform init -backend-config="bucket=threat-app-bucket" \
                          -backend-config="key=state" \
                          -backend-config="region=eu-west-2" \
                          -backend-config="encrypt=true"
