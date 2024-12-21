@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# threat-composer-tool
-=======
 <div align="center">
     <img src="./images/coderco.jpg" alt="CoderCo" width="300"/>
 </div>
@@ -50,4 +47,3 @@ serve -s build
 
 - This is just a simple app, you may use another app if you'd like. 
 - Use best practices for your Terraform code. Use best practices for your container image. Use best practices for your CI/CD pipeline.
->>>>>>> ecs-assignment/main
