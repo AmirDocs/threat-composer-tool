@@ -110,7 +110,7 @@ resource "aws_ecs_cluster_capacity_providers" "fargate-capacity" {
 }
 
 
-# EC Service #        INCOMPLETE
+# EC Service #      
 
 resource "aws_ecs_service" "threat-ecs-service" {
   name            = "threat-ecs-service"
