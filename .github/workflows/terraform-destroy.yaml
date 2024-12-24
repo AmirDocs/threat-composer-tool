@@ -50,8 +50,8 @@ jobs:
         run: |
           echo "Current directory:"
           pwd
+          ls -la
           chmod +x script.sh
-          ls -la  
           terraform init  
           terraform destroy --target=aws_route53_record.threat-sub-domain --auto-approve
           terraform destroy --auto-approve
