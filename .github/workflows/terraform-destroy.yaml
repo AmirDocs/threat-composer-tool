@@ -44,7 +44,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-2
 
-      # Terraform Destroy Step
+      - name: Debug Terraform
+        run: |
+          echo "PATH: $PATH"
+          echo "Checking Terraform installation:"
+          which terraform || echo "Terraform not found"
+          terraform -version || echo "Terraform command failed"
+      
+          # Terraform Destroy Step
       - name: Terraform Destroy
         working-directory: ./terraform  # Adjust if necessary
         run: |
