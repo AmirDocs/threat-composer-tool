@@ -44,6 +44,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-2
 
+      # Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+         terraform_version: latest # Adjust the version as necessary
+
       - name: Debug Terraform
         run: |
           echo "PATH: $PATH"
