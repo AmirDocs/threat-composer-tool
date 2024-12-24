@@ -48,7 +48,9 @@ jobs:
       - name: Terraform Destroy
         working-directory: ./terraform  # Adjust if necessary
         run: |
+          echo "Current directory:"
           pwd
+          echo "Files in the current directory:"
           ls -la  
           terraform init  
           terraform destroy --target=aws_route53_record.threat-sub-domain --auto-approve
