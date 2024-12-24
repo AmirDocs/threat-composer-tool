@@ -71,7 +71,7 @@ jobs:
       # Test S3 Access
       - name: Test S3 Access
         run: |
-          aws s3 ls s3://your-bucket-name --region eu-west-2
+          aws s3 ls s3://threat-app-bucket --region ${{ secrets.AWS_REGION }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
