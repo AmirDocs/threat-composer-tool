@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup Docker BuildX
-        uses: docker/setup-buildx-action@v2                                    # changed to uppercase x
+        uses: docker/setup-buildx-action@v2                                    
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
