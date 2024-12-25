@@ -11,6 +11,44 @@ CI/CD pipelines are integrated using GitHub Actions to automate the entire workf
 
 ![threat-composer](https://github.com/user-attachments/assets/a2430ea8-ed91-4e82-9636-506df4828487)
 
+# Table of Contents
+
+1. [Threat App Infrastructure Deployment on AWS with Terraform 🚀](#threat-app-infrastructure-deployment-on-aws-with-terraform-)
+2. [Project Overview 📝](#project-overview-)
+3. [Local App Setup 💻](#local-app-setup-)
+4. [Local Docker Container Setup 💻🐳](#local-docker-container-setup-)
+5. [Architecture Overview](#architecture-overview)
+6. [Terraform Files Structure](#terraform-files-structure)
+   - [VPC.tf](#1-vpctf)
+   - [ALB.tf](#2-albtf)
+   - [ECS.tf](#3-ecstf)
+   - [Route53.tf](#4-route53tf)
+   - [backend.tf](#5-backendtf)
+   - [provider.tf](#6-providertf)
+   - [variables.tf and terraform.tfvars](#7-variablestf-and-terraformtfvars)
+   - [outputs.tf](#8-outputstf)
+7. [Prerequisites](#prerequisites)
+8. [Key Modules 📚](#key-modules-)
+   - [alb.tf](#1-albtf)
+   - [ecs.tf](#2-ecstf)
+   - [route53.tf](#3-route53tf)
+   - [vpc.tf](#4-vpctf)
+   - [backend.tf](#5-backendtf)
+   - [provider.tf](#6-providertf)
+   - [variables.tf and terraform.tfvars](#7-variablestf-and-terraformtfvars)
+   - [outputs.tf](#8-outputstf)
+9. [CI/CD Workflows](#cicd-workflows)
+   - [Build and Push Docker Image 🐳](#build-and-push-docker-image-)
+   - [Terraform Build and Deploy 🌍](#terraform-build-and-deploy-)
+   - [Terraform Destroy Infrastructure 🔥](#terraform-destroy-infrastructure-)
+   - [Workflow Details](#workflow-details)
+10. [Benefits of CI/CD Integration](#benefits-of-cicd-integration)
+11. [Conclusion 🎯](#conclusion-)
+12. [Useful Links 🔗](#useful-links-)
+13. [How to Deploy](#how-to-deploy)
+14. [Troubleshooting 🔧](#troubleshooting-)
+
+
 ## Local app setup 💻
 
 ```bash
